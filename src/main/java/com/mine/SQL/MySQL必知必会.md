@@ -1,78 +1,36 @@
-```sql
-drop database demo;
-create database demo;
-create table demo.test (barcode text, goodsname text, price int);
--- goodsname barcode 都有可能重复 因此不能作为主键
-alter table demo.test add column itemnumber int primary key auto_increment;
-insert into demo.test (barcode, goodsname, price) values ('0001', '本', 3);
+0. MySQL Server：是 MySQL 数据库服务器，这是 MySQL 的核心组件
 
-create table demo.goodsmaster (barcode text, goodsname text, price double, itemnumber int primary key auto_increment);
-select * from demo.goodsmaster;
-select sum(price) as total from demo.goodsmaster;
-alter table demo.goodsmaster modify column price decimal(5, 2);
-```
-
-```sql
-- 插入数据goodsmaster
-INSERT INTO demo.goodsmaster
-(
-barcode,
-goodsname,
-price
-)
-VALUES
-(
-'0001',
-'书',
-0.47
-);
--- 第二条
-INSERT INTO demo.goodsmaster
-(
-barcode,
-goodsname,
-price
-)
-VALUES
-(
-'0002',
-'笔',
-0.44
-);
--- 第三条
-INSERT INTO demo.goodsmaster
-(
-barcode,
-goodsname,
-price
-)
-VALUES
-(
-'0002',
-'胶水',
-0.19
-);
-```
+00. MySQL Router：是一个轻量级的插件，可以在应用和数据库服务器之间，起到路由和
+负载均衡的作用。听起来有点复杂，我们来想象一个场景：假设你有多个 MySQL 数据
+库服务器，而前端的应用同时产生了很多数据库访问请求，这时，MySQL Router 就可
+以对这些请求进行调度，把访问均衡地分配给每个数据库服务器，而不是集中在一个或
+几个数据库服务器上。
 
 1. MySQL 数据库的连接方式配置
     - 网络通讯协议（TCP/IP）
     - 命名管道（Named Pipe）
     - 共享内存（Shared Memory）
-2. 项目的实际需求 --> 解决问题所需的知识点 --> 用好这些知识的实战经验
-3. 数据存储过程总共有 4 步，分别是创建数据库、确认字段、创建数据表、插入数据
-4. information_schema、performance_schema、sys、mysql 作用
+    - 命名管道和共享内存的优势是速度很快，但是，它们都有一个局限，那就是只能从本机访问 MySQL, 数据库服务器。所以，这里我们选择默认的网络通讯协议方式，这样的话，MySQL 数据库服务就可以通过网络进行访问了。
+2. information_schema、performance_schema、sys、mysql 作用
     1. “information_schema”是 MySQL 系统自带的数据库，主要保存 MySQL 数据库服务器的系统信息，比如数据库的名称、
         数据表的名称、字段名称、存取权限、数据文件所在的文件夹和系统使用的文件夹，等等
     2. “performance_schema”是 MySQL 系统自带的数据库，可以用来监控 MySQL 的各类性能指标
     3. “sys”数据库是 MySQL 系统自带的数据库，主要作用是，以一种更容易被理解的方式展示 MySQL 
         数据库服务器的各类性能指标，帮助系统管理员和开发人员监控 MySQL的技术性能
     4. “mysql”数据库保存了 MySQL 数据库服务器运行时需要的系统信息，比如数据文件夹、当前使用的字符集、约束检查信息，等等
-5. Field Type Null Key Default Extra
-6. 主键可以确保数据的唯一性，而且能够减少数据错误
+3. Field Type Null Key Default Extra
+4. 主键可以确保数据的唯一性，而且能够减少数据错误 并且提高查询的速度
     - 必须可以唯一标识数据表中的记录;
     - 不能是空；
     - 必须唯一，不能重复
-    
+
+- **Field**: 表示字段名称。
+- **Type**: 表示字段类型，这里 barcode、goodsname 是文本型的，price 是整数类型的。
+- **Null**: 表示这个字段是否允许是空值（NULL）。这里你一定要注意，在 MySQL 里面，空值不等于空字符串。一个空字符串的长度是 0，而一个空值的长度是空。而且，在 MySQL 里面，空值是占用空间的。
+- **Key**: 我们暂时把它叫做键。
+- **Default**: 表示默认值。我们导入的表的所有的字段都允许是空，默认值都是 NULL。
+- **Extra**: 表示附加信息。
+
 | 类型 | 有符号数取值范围 | 无符号数取值范围 | 占用字节数 | 适用场景 |
 | :---: | :---: | :---: | :---: | :---: |
 | TINYINT | -128~127 | 0~255 | 1 | 一般用于枚举数据，比如系统设定等取值范围很小且固定的场景 |
@@ -100,4 +58,70 @@ VALUES
 8. MySQL 有没有精准的数据类型呢？当然有，这就是定点数类型：DECIMAL
     - MySQL 用 DECIMAL（M,D）的方式表示高精度小数。其中，M 
       表示整数部分加小数部分，一共有多少位，M<=65。D 表示小数部分位数，D<M
-    
+
+| listnumber (单号) | supplierid (供货商编号) | stocknumber (仓库编号) | importtype (进货方式) | quantity (进货数量) | importvalue (进货金额) | Recorder (录入人编号) | recordingdate (录入时间) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1234 | 1 | 1 | 1 | 10 | 100 | 1 | 2020-12-20 |
+| 2345 | 1 | 1 | 2 | 20 | 200 | 1 | 2020-12-21 |
+| 3456 | 1 | 1 | 3 | 5 | 50 | 1 | 2020-12-25 |
+
+```sql
+-- 创建数据库
+create database demo;
+-- 删除数据库
+drop database demo;
+-- 查看数据库
+show database;
+-- 创建数据库表
+create table demo.test ([field] [type], ..., ...);
+-- 查看数据库表结构
+desc demo.test;
+-- 查看所有表
+show tables;
+-- 添加主键
+alter table demo.test add column id int primary key not null auto_increment;
+-- 插入数据
+insert into demo.test (id) values (1), (2), (3);
+-- 修改字段类型语句
+alter table demo.test modify column price double;
+-- 计算字段合计函数
+select sum(price) from demo.goodsmaster;
+```
+
+| 类型 | 描述 | 长度/取值特点 |
+|------|------|---------------|
+| **CHAR(M)** | 固定长度字符串。必须预先定义字符串长度。 | 如果太短，数据可能会超出范围；如果太长，又浪费存储空间。 |
+| **VARCHAR(M)** | 可变长度字符串。需要预先知道字符串的最大长度。 | 只要不超过这个最大长度，具体存储时按实际字符串长度存储。 |
+| **TEXT** | 字符串。 | 系统自动按照实际长度存储，不需要预先定义长度。 |
+| **ENUM** | 枚举类型。 | 取值必须是预先设定的一组字符串值范围之内的一个，必须要知道字符串所有可能的取值。 |
+| **SET** | 是一个字符串对象。 | 取值必须是在预先设定的字符串值范围之内的 0 个或多个，也必须知道字符串所有可能的取值。 |
+
+| 类型 | 最大长度（字符数） | 备注 |
+|------|-------------------|------|
+| **TINYTEXT** | 255 | 假设字符是 ASCII 码，一个字符占用一个字节 |
+| **TEXT** | 65535 | 同上 |
+| **MEDIUMTEXT** | 16777215 | 同上 |
+| **LONGTEXT** | 4294967295 | 相当于 4GB |
+
+> 说明：TEXT 类型共有 4 种，它们的区别就是最大长度不同。
+
+- TEXT 也有一个问题：由于实际存储的长度不确定，MySQL 不允许TEXT 类型的字段做主键。遇到这种情况，你只能采用 CHAR(M)，或者VARCHAR(M)。
+
+> 所以，我建议你，在你的项目中，只要不是主键字段，就可以按照数据可能的最大长度，选择这几种 TEXT 类型中的的一种，作为存储字符串的数据类型。
+
+| 类型 | 日期格式 | 范围 | 占用字节数 |
+|------|----------|------|-----------|
+| **YEAR** | YYYY | 1901 ～ 2155 | 1 |
+| **TIME** | HH:MM:SS | -838:59:59 ～ 838:59:59 | 3 |
+| **DATE** | YYYY-MM-DD | 1000-01-01 ～ 9999-12-3 | 3 |
+| **DATETIME** | YYYY-MM-DD HH:MM:SS | 1000-01-01 00:00:00 ～ 9999-12-31 23:59:59 | 8 |
+| **TIMESTAMP** | YYYY-MM-DD HH:MM:SS | 1970-01-01 00:00:01 UTC ～ 2038-01-19 03:14:07 UTC | 4 |
+
+> 不过，我也给你一条小建议：为了确保数据的完整性和系统的稳定性，优先考虑使用DATETIME 类型。因为虽然 DATETIME 类型占用的存储空间最多，但是它表达的时间最为完整，取值范围也最大。
+
+> 最后，我还想再给你分享 1 个小技巧。在定义数据类型时，如果确定是整数，就用 INT；如果是小数，一定用定点数类型 DECIMAL；如果是字符串，只要不是主键，就用 TEXT；如果是日期与时间，就用 DATETIME。
+
+- 整数 : int
+- 小数 : decimal
+- 字符串 : text
+- 时间 : datetime
