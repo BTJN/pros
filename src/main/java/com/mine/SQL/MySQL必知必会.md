@@ -1,35 +1,19 @@
-0. MySQL Server：是 MySQL 数据库服务器，这是 MySQL 的核心组件
-
-00. MySQL Router：是一个轻量级的插件，可以在应用和数据库服务器之间，起到路由和
-负载均衡的作用。听起来有点复杂，我们来想象一个场景：假设你有多个 MySQL 数据
-库服务器，而前端的应用同时产生了很多数据库访问请求，这时，MySQL Router 就可
-以对这些请求进行调度，把访问均衡地分配给每个数据库服务器，而不是集中在一个或
-几个数据库服务器上。
-
-1. MySQL 数据库的连接方式配置
+1. MySQL Server：是 MySQL 数据库服务器，这是 MySQL 的核心组件
+2. MySQL Router：在应用和数据库服务器之间，起到路由和负载均衡的作用的插件。场景：假设有多个 MySQL 数据库服务器，而前端应用同时产生了很多数据库访问请求，MySQL Router对这些请求进行调度，把访问均衡地分配给每个数据库服务器，而不是集中在一个或几个数据库服务器上。
+3. MySQL 数据库的连接方式配置
     - 网络通讯协议（TCP/IP）
     - 命名管道（Named Pipe）
     - 共享内存（Shared Memory）
-    - 命名管道和共享内存的优势是速度很快，但是，它们都有一个局限，那就是只能从本机访问 MySQL, 数据库服务器。所以，这里我们选择默认的网络通讯协议方式，这样的话，MySQL 数据库服务就可以通过网络进行访问了。
-2. information_schema、performance_schema、sys、mysql 作用
-    1. “information_schema”是 MySQL 系统自带的数据库，主要保存 MySQL 数据库服务器的系统信息，比如数据库的名称、
-        数据表的名称、字段名称、存取权限、数据文件所在的文件夹和系统使用的文件夹，等等
-    2. “performance_schema”是 MySQL 系统自带的数据库，可以用来监控 MySQL 的各类性能指标
-    3. “sys”数据库是 MySQL 系统自带的数据库，主要作用是，以一种更容易被理解的方式展示 MySQL 
-        数据库服务器的各类性能指标，帮助系统管理员和开发人员监控 MySQL的技术性能
-    4. “mysql”数据库保存了 MySQL 数据库服务器运行时需要的系统信息，比如数据文件夹、当前使用的字符集、约束检查信息，等等
-3. Field Type Null Key Default Extra
-4. 主键可以确保数据的唯一性，而且能够减少数据错误 并且提高查询的速度
+    - 命名管道和共享内存速度快，但都只能从本机访问MySQL数据库服务器。这里我们选择默认的网络通讯协议方式，这样MySQL数据库服务就可以通过网络进行访问。
+4. information_schema、performance_schema、sys、mysql 作用
+    1. “information_schema”主要保存MySQL数据库服务器的系统信息，比如数据库的名称、数据表的名称、字段名称、存取权限、数据文件所在的文件夹和系统使用的文件夹，等等
+    2. “performance_schema”可以用来监控 MySQL 的各类性能指标
+    3. “sys”主要展示MySQL数据库服务器的各类性能指标，帮助系统管理员和开发人员监控 MySQL的技术性能
+    4. “mysql”保存了 MySQL 数据库服务器运行时需要的系统信息，比如数据文件夹、当前使用的字符集、约束检查信息，等等
+5. 主键确保数据的唯一性，能减少数据错误并提高查询速度
     - 必须可以唯一标识数据表中的记录;
     - 不能是空；
     - 必须唯一，不能重复
-
-- **Field**: 表示字段名称。
-- **Type**: 表示字段类型，这里 barcode、goodsname 是文本型的，price 是整数类型的。
-- **Null**: 表示这个字段是否允许是空值（NULL）。这里你一定要注意，在 MySQL 里面，空值不等于空字符串。一个空字符串的长度是 0，而一个空值的长度是空。而且，在 MySQL 里面，空值是占用空间的。
-- **Key**: 我们暂时把它叫做键。
-- **Default**: 表示默认值。我们导入的表的所有的字段都允许是空，默认值都是 NULL。
-- **Extra**: 表示附加信息。
 
 | 类型 | 有符号数取值范围 | 无符号数取值范围 | 占用字节数 | 适用场景 |
 | :---: | :---: | :---: | :---: | :---: |
@@ -66,18 +50,7 @@
 | 3456 | 1 | 1 | 3 | 5 | 50 | 1 | 2020-12-25 |
 
 ```sql
--- 创建数据库
-create database demo;
--- 删除数据库
-drop database demo;
--- 查看数据库
-show database;
--- 创建数据库表
 create table demo.test ([field] [type], ..., ...);
--- 查看数据库表结构
-desc demo.test;
--- 查看所有表
-show tables;
 -- 添加主键
 alter table demo.test add column id int primary key not null auto_increment;
 -- 插入数据
@@ -125,3 +98,357 @@ select sum(price) from demo.goodsmaster;
 - 小数 : decimal
 - 字符串 : text
 - 时间 : datetime
+
+
+### importhead 进货单投表
+
+| listnumber<br>(单号) | supplierid<br>(供货商编号) | stocknumber<br>(仓库编号) | importtype<br>(进货方式) | quantity<br>(进货数量) | importvalue<br>(进货金额) | Recorder<br>(录入人编号) | recordingdate<br>(录入时间) |
+|----------------------|----------------------------|---------------------------|--------------------------|------------------------|---------------------------|--------------------------|-----------------------------|
+| 1234 | 1 | 1 | 1 | 10 | 100 | 1 | 2020-12-20 |
+| 2345 | 1 | 1 | 2 | 20 | 200 | 1 | 2020-12-21 |
+| 3456 | 1 | 1 | 3 | 5  | 50  | 1 | 2020-12-25 |
+
+> 这里的 1、2、3 表示门店的 3 种进货方式，分别是配送中心配送、门店采买和供货商直供
+
+```sql
+create table <表名> (
+字段名1 数据类型 [字段级别约束] [默认值]，
+字段名2 数据类型 [字段级别约束] [默认值]，
+......
+[表级别约束]
+)
+
+create table demo.importhead (
+    listnumber int,
+    supplierid int,
+    stocknumber int,
+    -- 我们在字段importype定义为INT类型的后面，按照MySQL创建表的语法，加了默认值1。
+    importtype int default 1,
+    quantity decimal(10, 3),
+    importvalue decimal(10, 2),
+    recorder int,
+    recordingdate datetime
+);
+
+insert into demo.importhead (listnumber, supplierid, stocknumber, quantity, importvalue, recorder, recordingdate) values (3456,1,1,10,100,1,'2020-12-10');
+```
+
+- 在 MySQL 创建表的语法结构里面，有一个词叫做“约束”。“约束”限定了表中数据应该满足的条件。MySQL 会根据这些限定条件，对表的操作进行监控，阻止破坏约束条件的操作执行，并提示错误，从而确保表中数据的唯一性、合法性和完整性。这是创建表时不可缺少的一部分
+
+- 除了默认约束，还有主键约束、外键约束、非空约束、唯一性约束和自增约束
+
+1. 非空约束
+    - 非空约束表示字段值不能为空，如果创建表的时候，指明某个字段非空，那么添加数据的时候，这个字段必须有值，否则系统就会提示错误。
+2. 唯一性约束
+    - 唯一性约束表示这个字段的值不能重复，否则系统会提示错误。跟主键约束相比，唯一性约束要更加弱一些。在一个表中，我们可以指定多个字段满足唯一性约束，而主键约束则只能有一个，这也是MySQL 系统决定的。另外，满足主键约束的字段，自动满足非空约束，但是满足唯一性约束的字段，则可以是空值。
+    - 为了方便你理解，我来举个例子。比如，我们有个商品信息表 goodsmaster，如下所示
+
+            | barcode | goodsname | price |
+            |---------|-----------|-------|
+            | 0001    | book      | 89    |
+            | 0002    | pen       | 12    |
+
+        ```text
+        barcode 代表条码，goodsname 代表名称。为了防止条码重复，我们可以定义字段“barcode”满足唯一性约束。这样一来，条码就不能重复，但是可以为空，而且只能有一条记录条码为空。同样道理，为了防止名称重复，我们也可以定义字段“goodsname”满足唯一性约束。但是，由于无论名称和条码都可能重用，或者可能为空，都不适合做主键。因此，对这个表来说，可以添加一个满足唯一性要求的新字段来做主键。
+        ```
+3. 自增约束
+    - 自增约束可以让 MySQL 自动给字段赋值，且保证不会重复
+
+            | barcode | goodsname | price |
+            |---------|-----------|-------|
+            | 0001    | 书        | 89    |
+            | 0002    | 馒头      | 1.5   |
+            | 0002    | 花卷      | 1.8   |
+    
+    - 从这个表中，我们可以看到，barcode、goodsname 和 price 都不能确保唯一性，所以没有任何一个字段可以做主键，因此，我们可以自己添加一个字段 itemnumber，并且每次添加一条数据的时候，要给值增加 1。怎么实现呢？我们就可以通过定义自增约束的方式，让系统自动帮我们赋值，从而满足唯一性，这样就可以做主键了。
+
+            | itemnumber | barcode | goodsname | price |
+            |------------|---------|-----------|-------|
+            | 1          | 0001    | 书        | 89    |
+            | 2          | 0002    | 馒头      | 1.5   |
+            | 3          | 0002    | 花卷      | 1.8   |
+    
+    - 有 2 个问题需要你注意一下: 第一，在数据表中，只有整数类型的字段（包括TINYINT、SMALLINT、MEDIUMINT、INT 和 BIGINT），才可以定义自增约束。自增约束的字段，每增加一条数据，值自动增加1。
+    - 第二，你可以给自增约束的字段赋值，这个时候，MySQL 会重置自增约束字段的自增基数，下次添加数据的时候，自动以自增约束字段的最大值加 1 为新的字段值。
+
+```sql
+CREATE TABLE(字段名 字段类型 PRIMARY KEY);
+CREATE TABLE(字段名 字段类型 NOT NULL);
+CREATE TABLE(字段名 字段类型 UNIQUE);
+CREATE TABLE(字段名 字段类型 DEFAULT 值);
+-- 这里要注意自增类型的条件，字段类型必须是整数类型。
+CREATE TABLE(字段名 字段类型 AUTO_INCREMENT);
+-- 在一个已经存在的表基础上，创建一个新表
+CREATE demo.importheadhist LIKE demo.importhead;
+-- 修改表的相关语句
+ALTER TABLE 表名 CHANGE 旧字段名 新字段名 数据类型;
+ALTER TABLE 表名 ADD COLUMN 字段名 字段类型 FIRST|AFTER 字段名;
+ALTER TABLE 表名 MODIFY 字段名 字段类型 FIRST|AFTER 字段名;
+
+-- 可以在表一级指定表的存储引擎
+alter table 表名 ENGINE=INNODB;
+
+可以通过指定关键字 AUTO_EXTENDSIZE，来指定存储文件自增空间的大小，从而提高存储空间的利用率
+
+可以通过 INVISIBLE 关键字，使字段不可见，但却可以使用
+```
+
+10. 我们在插入一条数据记录的时候，必须要考虑字段约束的 3 种情况
+    1. 如果字段允许为空，而我们没有给它赋值，那么 MySQL 会自动给它们赋予空值。在刚刚的代码中，“specification”“unit”字段都允许为空，因此，如果数据插入语句没有指定这几个字段的值，MySQL 会自动插入空值。
+    2. 如果字段是主键，就不能为空，这个时候，MySQL 会按照我们添加的约束进行处理。比如字段“itemnumber”是主键，不能为空，而我们定义了自增约束，所以MySQL 自动在之前的最大值基础上加了 1。因此，“itemnumber”也有了自己该有的值。
+    3. 如果有一个字段定义不能为空，又不是主键，当你插入一条数据记录的时候，就必须给这个记录赋值。
+
+    - 部分插入一条数据记录是可以的，但前提是，没有赋值的字段，一定要让 MySQL 知道如何处理，比如可以为空、有默认值，或者是自增约束字段，等等，否则，MySQL 会提示错误的
+
+    ```
+    我们的项目就有这样的场景：门店每天的销售流水都很多，日积月累，流水表变得越来越大。如果就让它这么不断地增长，数据量甚至会达到数亿条，占据的存储空间达到几十个G。虽然 MySQL 可以处理这样比较大的数据表，但是每次操作的响应时间就会延长，这会导致系统的整体效率下降。刚开始的时候，我们开发了一个日结处理，当天算清所有账目。其中一个步骤就是，把当天流水表的数据全部转到历史流水表当中去。现在，我们就可以用上数据插入语句了。具体有 2 步：
+    ```
+
+    1. 从流水表中取出一条数据；
+    2. 把这条数据插入到历史流水表中。
+
+    ### 插入查询结果
+    ```sql
+    insert into 表名 （字段名）
+    SELECT 字段名或值
+    FROM 表名
+    WHERE 条件
+
+    INSERT INTO 历史流水表 （日结时间字段，其他字段）
+    SELECT 获取当前时间函数，其他字段
+    FROM 流水表
+    ```
+
+    ### 删除数据
+    ```sql
+    delete from tablename
+    where condition
+    ```
+
+    ### 修改数据
+    ```sql
+    update tablename
+    set fieldname=val
+    where cond
+
+    -- 语法很简单，需要注意的一点是，不要修改主键字段的值。因为主键是数据记录的唯一标识，如果修改了主键的值，就有可能会破坏数据的完整性
+    ```
+
+    ### 查询数据
+    ```sql
+    SELECT *|字段列表
+    FROM 数据源
+    WHERE 条件
+    GROUP BY 字段
+    HAVING 条件
+    ORDER BY 字段
+    LIMIT 起始点，行数
+
+    -- GROUP BY：作用是告诉 MySQL，查询结果要如何分组，经常与 MySQL 的聚合函数一起使用。HAVING：用于筛选查询结果，跟 WHERE 类似
+
+    -- 数据源也不一定是表，也可以是一个查询的结果。比如下面的查询
+    ```
+
+    - 派生表（derived table），或者子查询（subquery），意思是我们把一个查询结果数据集当做一个虚拟的数据表来看待。MySQL 规定，必须要用 AS 关键字给这个派生表起一个别名
+
+    ### ORDER BY
+    - ASC DESC
+
+    ### LIMIT
+    - “LIMIT 1,2”中，“1”表示起始位置，MySQL 中，起始位置的起点是 0，1 表示从第 2 条记录开始；“2”表示 2 条数据。因此，“LIMIT 1,2”就表示从第 2 条数据开始，显示 2 条数据，也就是显示了第 2、3 条数据。
+
+    ## 总结
+    ```sql
+    INSERT INTO 表名 [(字段名 [,字段名] ...)] VALUES (值的列表);
+    
+    INSERT INTO 表名 （字段名）
+    SELECT 字段名或值
+    FROM 表名
+    WHERE 条件
+    
+    DELETE FROM 表名
+    WHERE 条件
+    
+    UPDATE 表名
+    SET 字段名=值
+    WHERE 条件
+    
+    SELECT *|字段列表
+    FROM 数据源
+    WHERE 条件
+    GROUP BY 字段
+    HAVING 条件
+    ORDER BY 字段
+    LIMIT 起始点，行数
+    ```
+
+    - 如果我们把查询的结果插入到表中时，导致主键约束或者唯一性约束被破坏了，就可以用“ON DUPLICATE”关键字进行处理。这个关键字的作用是，告诉MySQL，如果遇到重复的数据，该如何处理, 假设用户有 2 个各自独立的门店，分别有自己的系统。现在需要引入连锁经营的模式，把2 个店用一套系统统一管理。那么首先遇到的问题就是，需要进行数据整合。下面我们就以商品信息表为例，来说明如何通过使用“ON DUPLICATE”关键字，把两个门店的商品信息数据整合到一起。
+
+    ```sql
+    MySQL  localhost:3306 ssl  demo  SQL > select * from demo.goodsmaster;
+    +------------+---------+-----------+---------------+------+------------+
+    | itemnumber | barcode | goodsname | specification | unit | salesprice |
+    +------------+---------+-----------+---------------+------+------------+
+    |          1 | 0001    | 书        | 16开          | 本   |      89.00 |
+    |          2 | 0002    | 笔        | 10支装        | 包   |       5.00 |
+    |          3 | 0003    | 橡皮      | NULL          | 个   |       3.00 |
+    +------------+---------+-----------+---------------+------+------------+
+    3 rows in set (0.0008 sec)
+    MySQL  localhost:3306 ssl  demo  SQL > select * from demo.goodsmaster1;
+    +------------+---------+-----------+---------------+------+------------+
+    | itemnumber | barcode | goodsname | specification | unit | salesprice |
+    +------------+---------+-----------+---------------+------+------------+
+    |          1 | 0001    | 教科书    | NULL          | NULL |      89.00 |
+    |          4 | 0004    | 馒头      | NULL          | NULL |       1.50 |
+    +------------+---------+-----------+---------------+------+------------+
+    ```
+
+    ```sql
+    -- 假设我们要把门店 B 的商品数据，插入到门店 A 的商品表中去，如果有重复的商品编号，就用门店 B 的条码，替换门店 A 的条码，用门店 B 的商品名称，替换门店 A 的商品名称；如果没有重复的编号，就直接把门店 B 的商品数据插入到门店 A 的商品表中
+
+    insert into demo.goodsmaster select * from demo.goodsmaster1 as a
+    on duplicate key update barcode=a.barcode,goodsname=a.goodsname;
+    ```
+
+    ```
+    商品表 demo.goodsmaster 中，字段“itemnumber”是主键，
+    而且满足自增约束，如果我删除了一条记录，再次插入数据的时候，就会出现字
+    段“itemnumber”的值不连续的情况。请你想一想，如何插入数据，才能防止这种情况
+    的发生呢？
+    ```
+
+
+| cardno (卡号) | membername (名称) | memberphone (电话) | memberpid (身份证号) | address (地址) | sex (性别) | birthday (生日) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 10000001 | 张三 | 13812345678 | 110123200001017890 | 北京 | 男 | 2000-01-01 |
+| 10000002 | 李四 | 13512312312 | 123123199001012356 | 上海 | 女 | 1990-01-01 |
+
+11. 业务字段做主键、自增字段做主键和手动赋值字段做主键
+    1. 业务字段做主键
+        - 会员卡号（cardno）不能为空，而且有唯一性，可以用来标识一条会员记录。我们来尝试一下用会员卡号做主键
+        ```sql
+        create table demo.membermaster(
+            cardno char(8) primary key, -- 会员卡号作为主键
+            membername text,
+            memberphone text,
+            memberpid text,
+            memberaddress text,
+            sex text,
+            birthday datetime
+        );
+
+        insert into demo.membermaster (cardno, membername, memberphone, memberpid, memberaddress, sex, birthday) values ('10000001','张三','13812345678','110123200001017890', '北京','男','2000-01-01');
+
+         insert into demo.membermaster (cardno, membername, memberphone, memberpid, memberaddress, sex, birthday) values ('10000002','李四','13512345678',
+         '123123199001012356','上海','女','1990-01-01');
+        ```
+
+        | transactionno (流水单号) | itemnumber (商品编号) | quantity (销售数量) | price (价格) | salesvalue (销售金额) | cardno (会员卡号) | transdate (交易时间) |
+        | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+        | 1 | 1 | 1 | 89 | 89 | 10000001 | 2020-12-01 |
+
+        ```sql
+        create table demo.trans (
+            transactionno int,
+            itemnumber int, -- 为了引用商品信息
+            quantity decimal(10, 3),
+            price decimal(10, 2),
+            salesvalue decimal(10, 2),
+            cardno char(8), -- 为了引用会员信息
+            transdate datetime
+        );
+
+        insert into demo.trans (transactionno,itemnumber,quantity,price,salesvalue,cardno,transdate) VALUES(1,1,1,89,89,'10000001','2020-12-01');
+
+        select b.membername, c.goodsname, a.quantity, a.salesvalue, a.transdate from 
+        demo.trans as a 
+        join demo.membermaster as b
+        join demo.goodsmaster as c
+        on (a.cardno=b.cardno and a.itemnumber=c.itemnumber); 
+
+        update demo.membermaster set membername='five' where cardno='10000001';
+
+        select b.membername, c.goodsname, a.quantity, a.salesvalue, a.transdate from 
+        demo.trans as a 
+        join demo.membermaster as b
+        join demo.goodsmaster as c
+        on (a.cardno=b.cardno and a.itemnumber=c.itemnumber); 
+
+        +------------+-----------+----------+------------+---------------------+
+        | membername | goodsname | quantity | salesvalue | transdate           |
+        +------------+-----------+----------+------------+---------------------+
+        | five       | books     |    1.000 |      89.00 | 2020-12-01 00:00:00 |
+        +------------+-----------+----------+------------+---------------------+ 
+        ```
+
+        - 不要使用业务字段作为主键 即使能够满足唯一性 如 身份证 手机号 等 其持有人都有可能变更
+        - 尽量不要用业务字段，也就是跟业务有关的字段做主键
+
+        ```sql
+        alter table demo.membermaster drop primary key;
+        alter table demo.membermaster add column id int primary key auto_increment;
+
+        update demo.trans as a , demo.membermaster as b 
+        set a.memberid=b.id
+        where a.transactionno > 0 and a.cardno=b.cardno;
+
+        insert into demo.membermaster ( cardno, membername, memberphone, memberpid, memberaddress, sex, birthday ) VALUES ( '10000001', '王五', '13698765432','475145197001012356', '天津', '女', '1970-01-01' );
+
+        select b.membername, c.goodsname, a.quantity, a.salesvalue, a.transdate from 
+        demo.trans as a 
+        join demo.membermaster as b
+        join demo.goodsmaster as c
+        on (a.cardno=b.cardno and a.itemnumber=c.itemnumber); 
+        ```
+
+        - 如果是一个小项目，只有一个 MySQL 数据库服务器，用添加自增字段作为主键的办法是可以的。不过，这并不意味着，在任何情况下你都可以这么做。
+        ```
+        举个例子，用户要求把增加新会员的工作放到门店进行，因为发展新会员的工作一般是在门店进行的，毕竟，人们一般都是在购物的同时申请会员。解决的办法是，门店的信息系统添加新增会员的功能，把新的会员信息先存放到本地 MySQL 数据库中，再上传到总部，进行汇总。可是问题来了，如果会员信息表的主键是自增的，那么各个门店新加的会员就会出现“id”冲突的可能。比如，A 店的 MySQL 数据库中的 demo.membermaster 中，字段“id”的值是 100，这个时候，新增了一个会员，“id”是 101。同时，B 店的字段“id”值也是 100，要加一个新会员，“id”也是 101，毕竟，B 店的 MySQL 数据库与 A 店相互独立。等 A 店与B 店都把新的会员上传到总部之后，就会出现两个“id”是 101，但却是不同会员的情况，这该如何处理呢？
+        ```
+
+        - 手动赋值字段做主键
+        ```
+        为了解决这个问题，我们想了一个办法：取消字段“id”的自增属性，改成信息系统在添加会员的时候对“id”进行赋值。具体的操作是这样的：在总部 MySQL 数据库中，有一个管理信息表，里面的信息包括成本核算策略，支付方式等，还有总部的系统参数，我们可以在这个表中添加一个字段，专门用来记录当前会员编号的最大值。门店在添加会员的时候，先到总部 MySQL 数据库中获取这个最大值，在这个基础上加1，然后用这个值作为新会员的“id”，同时，更新总部 MySQL 数据库管理信息表中的当前会员编号的最大值。这样一来，各个门店添加会员的时候，都对同一个总部 MySQL 数据库中的数据表字段进行操作，就解决了各门店添加会员时会员编号冲突的问题，同时也避免了使用业务字段导致数据错误的问题。
+        ```
+
+    ## 总结
+
+    - 用业务字段做主键，看起来很简单，但是我们应该尽量避免这样做。因为我们无法预测未来会不会因为业务需要，而出现业务字段重复或者重用的情况。自增字段做主键，对于单机系统来说是没问题的。但是，如果有多台服务器，各自都可以录入数据，那就不一定适用了。因为如果每台机器各自产生的数据需要合并，就可能会出现主键重复的问题。我们可以采用手动赋值的办法，通过一定的逻辑，确保字段值在全系统的唯一性，这样就可以规避主键重复的问题了
+
+
+12. 外键和链接：如何做关联查询？
+
+    - 进货单头表（importhead）
+
+    | listnumber (进货单号) | supplierid (供货商编号) | stocknumber (仓库编号) | importtype (进货类别) | totalquantity (总计数量) | totalvalue (总计金额) | recorder (录入人编号) | recordingdate (录入时间) |
+    | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+    | 1234 | 1 | 1 | 1 | 30 | 1110 | 1 | 2020-12-20 |
+
+    - 进货单明细表（importdetails）
+
+    | listnumber (进货单号) | itemnumber (商品编号) | quantity (进货数量) | Importprice (进货价格) | importvalue (进货金额) |
+    | :---: | :---: | :---: | :---: | :---: |
+    | 1234 | 1 | 10 | 89 | 890 |
+    | 1234 | 2 | 20 | 12 | 240 |
+
+    - 外键就是从表中用来引用主表中数据的那个公共字段
+
+    ![alt text](imgs/image.png)
+
+    - 在 MySQL 中，外键是通过外键约束来定义的。外键约束就是约束的一种，它必须在从表中定义，包括指明哪个是外键字段，以及外键字段所引用的主表中的主键字段是什么。MySQL 系统会根据外键约束的定义，监控对主表中数据的删除操作。如果发现要删除的主表记录，正在被从表中某条记录的外键字段所引用，MySQL 就会提示错误，从而确保了关联数据不会缺失
+
+    ```sql
+    [CONSTRAINT <外键约束名称>] FOREIGN KEY 字段名 REFERENCES <主表名> 字段名
+
+    CREATE TABLE 从表名
+    (
+    字段名 类型,
+    ...
+    -- 定义外键约束，指出外键字段和参照的主表字段
+    CONSTRAINT 外键约束名
+    FOREIGN KEY (字段名) REFERENCES 主表名 (字段名)
+    )
+
+    ALTER TABLE 从表名 ADD CONSTRAINT 约束名 FOREIGN KEY 字段名 REFERENCES 主表名 (字段名);
+    ```
+
