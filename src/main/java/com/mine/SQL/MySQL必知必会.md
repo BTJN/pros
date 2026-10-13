@@ -260,26 +260,10 @@ alter table 表名 ENGINE=INNODB;
     ## 总结
     ```sql
     INSERT INTO 表名 [(字段名 [,字段名] ...)] VALUES (值的列表);
-    
-    INSERT INTO 表名 （字段名）
-    SELECT 字段名或值
-    FROM 表名
-    WHERE 条件
-    
-    DELETE FROM 表名
-    WHERE 条件
-    
-    UPDATE 表名
-    SET 字段名=值
-    WHERE 条件
-    
-    SELECT *|字段列表
-    FROM 数据源
-    WHERE 条件
-    GROUP BY 字段
-    HAVING 条件
-    ORDER BY 字段
-    LIMIT 起始点，行数
+    INSERT INTO 表名 （字段名）SELECT 字段名或值 FROM 表名 WHERE 条件
+    DELETE FROM 表名 WHERE 条件
+    UPDATE 表名 SET 字段名=值 WHERE 条件
+    SELECT *|字段列表 FROM 数据源 WHERE 条件 GROUP BY 字段 HAVING 条件 ORDER BY 字段 LIMIT 起始点，行数
     ```
 
     - 如果我们把查询的结果插入到表中时，导致主键约束或者唯一性约束被破坏了，就可以用“ON DUPLICATE”关键字进行处理。这个关键字的作用是，告诉MySQL，如果遇到重复的数据，该如何处理, 假设用户有 2 个各自独立的门店，分别有自己的系统。现在需要引入连锁经营的模式，把2 个店用一套系统统一管理。那么首先遇到的问题就是，需要进行数据整合。下面我们就以商品信息表为例，来说明如何通过使用“ON DUPLICATE”关键字，把两个门店的商品信息数据整合到一起。
@@ -440,15 +424,88 @@ alter table 表名 ENGINE=INNODB;
     ```sql
     [CONSTRAINT <外键约束名称>] FOREIGN KEY 字段名 REFERENCES <主表名> 字段名
 
-    CREATE TABLE 从表名
-    (
+    CREATE TABLE 从表名 (
     字段名 类型,
     ...
     -- 定义外键约束，指出外键字段和参照的主表字段
-    CONSTRAINT 外键约束名
-    FOREIGN KEY (字段名) REFERENCES 主表名 (字段名)
+    CONSTRAINT 外键约束名 FOREIGN KEY (字段名) REFERENCES 主表名 (字段名)
     )
 
     ALTER TABLE 从表名 ADD CONSTRAINT 约束名 FOREIGN KEY 字段名 REFERENCES 主表名 (字段名);
+
+
+    CREATE TABLE demo.importhead (
+        listnumber INT PRIMARY KEY,
+        supplierid INT,
+        stocknumber INT,
+        importtype INT,
+        importquantity DECIMAL(10 , 3 ),
+        importvalue DECIMAL(10 , 2 ),
+        recorder INT,
+        recordingdate DATETIME
+    );
+
+    CREATE TABLE demo.importdetails (
+    listnumber INT,
+    itemnumber INT,
+    quantity DECIMAL(10,3),
+    importprice DECIMAL(10,2),
+    importvalue DECIMAL(10,2),
+    -- 定义外键约束，指出外键字段和参照的主表字段
+    CONSTRAINT fk_importdetails_importhead FOREIGN KEY (listnumber) REFERENCES importhead (listnumber)
+    );
+
+
+    SELECT
+        constraint_name, -- 表示外键约束名称
+        table_name, -- 表示外键约束所属数据表的名称
+        column_name, -- 表示外键约束的字段名称
+        referenced_table_name, -- 表示外键约束所参照的数据表名称
+        referenced_column_name -- 表示外键约束所参照的字段名称
+    FROM
+        information_schema.KEY_COLUMN_USAGE
+    WHERE
+        constraint_name = 'fk_importdetails_importhead';
     ```
 
+    - INNER JOIN：两圆交集 
+    - LEFT JOIN：整个左圆
+    - RIGHT JOIN：整个右圆
+    - FULL JOIN：两个圆的并集
+
+    ![alt text](imgs/image-1.png)
+
+    ```sql
+    CREATE TABLE 从表名 (
+    字段 字段类型
+    ....
+    CONSTRAINT 外键约束名称 FOREIGN KEY (字段名) REFERENCES 主表名 (字段名称)
+    );
+    ALTER TABLE 从表名 ADD CONSTRAINT 约束名 FOREIGN KEY 字段名 REFERENCES 主表名 （字段
+    -- 连接查询
+    SELECT 字段名 FROM 表名 AS a JOIN 表名 AS b ON (a.字段名称=b.字段名称);
+    SELECT 字段名 FROM 表名 AS a LEFT JOIN 表名 AS b ON (a.字段名称=b.字段名称);
+    SELECT 字段名 FROM 表名 AS a RIGHT JOIN 表名 AS b ON (a.字段名称=b.字段名称);
+    ```
+
+    ### demo.trans
+    | transactionnumber (流水单号) | Itemnumber (商品编号) | price (价格) | quantity (数量) | cardno (会员卡号) | transdate (交易时间) |
+    | :---: | :---: | :---: | :---: | :---: | :---: |
+    | 1 | 1 | 89 | 1 | 10000001 | 2020-12-01 |
+    | 2 | 2 | 12 | 1 | NULL | 2020-12-02 |
+
+    ### demo.membermaster
+    | cardno (会员卡号) | membername (会员名称) | memberphone (会员电话) | memberpid (会员身份证号) | sex (会员性别) |
+    | :---: | :---: | :---: | :---: | :---: |
+    | 10000001 | 张三 | 13512345678 | 110123199901017890 | 男 |
+
+    ```sql
+    select a.transactionnumber, a.itemnumber, a.price, a.quantity, a.transdate
+    from demo.trans as a
+    join demo.membermaster as b
+    on (a.cardno=b.cardno);
+    ```
+
+    - 为什么我要先插入进货单头表的数据，再插入进货单明细表的数据呢？其实，这是因为，如果我先插入数据到从表，也就是进货单明细表，会导致 MySQL 找不到参照的主表信息，会提示错误，因为添加数据违反了外键约束。
+
+    - 你可能会不以为然，觉得按照信息系统的操作逻辑，生成一张进货单的时候，一定是先生成单头，再插入明细。同样，删除一张进货单的时候，一定是先删除明细，再删除单头。要是你这么想，可能就会“中招”了。原因很简单，既然我们把进货数据拆成了 2 个表，这就决定了无论是数据添加，还是数据删除，都不能通过一条 SQL 语句实现。实际工作中，什么突发情况都是有可能发生的。你认为一定会完成的操作，完全有可能只执行了一部分。我们曾经就遇到过这么一个问题：用户月底盘点的时候，盘点单无法生成，系统提示“有未处理的进货单”。经过排查，发现是进货单数据发生了数据缺失，明细数据还在，对应的单头数据却被删除了。我们反复排查之后，才发现是缺少了防止数据缺失的机制。最后通过定义外键约束，解决了这个问题。
